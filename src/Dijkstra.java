@@ -3,26 +3,15 @@ import java.util.*;
 import java.util.logging.Logger;
 
 public class Dijkstra extends Graph {
-    private int comparisons = 0;
-    private final NodeMap unvisitedNodes;
+    private final NodeMap allNodes;
     private final NodeMap visitedNodes;
     private final Map<String[], String[]> steps = new LinkedHashMap<>();
     private int numOfNodes;
 
     public Dijkstra(List<Node> nodes, List<Edge> edges) {
         super(nodes, edges);
-        this.unvisitedNodes = new NodeMap(nodes);
+        this.allNodes = new NodeMap(nodes);
         this.visitedNodes = new NodeMap();
-        this.numOfNodes = nodes.size();
-    }
-
-    public NodeMap getUnvisitedNodes() {
-        return unvisitedNodes;
-    }
-
-    public void updateNodes(List<Node> nodes) {
-        this.unvisitedNodes.update(nodes);
-        this.visitedNodes.clear();
         this.numOfNodes = nodes.size();
     }
 
@@ -31,32 +20,38 @@ public class Dijkstra extends Graph {
             throw new IllegalArgumentException("Starting node cannot be null.");
         }
 
-        if (!unvisitedNodes.contains(startingNode)) {
+        if (!allNodes.contains(startingNode)) {
             throw new IllegalArgumentException("Starting node is not in the graph.");
         }
-
-        comparisons = 0;
 
         if (!steps.isEmpty()) {
             steps.clear();
         }
 
+        //输出的第一行，展示所有node
         instantiateSteps();
 
+        //第一次遍历，和首节点相连的node的距离 = 连接edge的weight，和首节点不相连的node的距离 = -1
         findInitialLValues(startingNode);
 
-        while (visitedNodes.size() < unvisitedNodes.size()) {
+
+        // while循环，判断遍历过的node的数量，如果都遍历完了，则退出循环
+        while (visitedNodes.size() < allNodes.size()) {
+            //更新step，把上一次计算出来的每个节点的最新值放到step中，用于输出
             updateSteps();
 
+            //计算下一次的node（最近的node）
             Node nextNode = findNodeWithSmallestLValue();
 
             if (nextNode == null) {
                 break;
             }
 
+            //计算和下一个node相连的node，更新值（取最小值），或者如果下一个节点的值是-1（没遍历过），则赋最新的值
             findSubsequentLValues(nextNode);
         }
 
+        //每次循环后都要更新一下step，由于while循环最后一次没有更新，所以出循环后再手动更新一次
         updateSteps();
 
         return steps;
@@ -67,7 +62,7 @@ public class Dijkstra extends Graph {
 
         String[] nodeNames = new String[numOfNodes];
 
-        for (Node node : unvisitedNodes.getNodes()) {
+        for (Node node : allNodes.getNodes()) {
             nodeNames[index] = node.getName();
             index++;
         }
@@ -79,31 +74,32 @@ public class Dijkstra extends Graph {
         String[] nodeIds = new String[visitedNodes.size()];
         String[] lValues = new String[numOfNodes];
 
+        //这一步是组装输出的左半部分 即遍历过的node
         int index = 0;
         for (Node node : visitedNodes.getNodes()) {
             nodeIds[index++] = String.valueOf(node.getId());
         }
 
+        //这一步是组装输出的左半部分 即当前步骤中，每个节点的值，遍历过的=weight，没遍历过的=-1
         index = 0;
-        for (Node node : unvisitedNodes.getNodes()) {
-            lValues[index++] = unvisitedNodes.getLValueByNodeId(node.getId()).toString();
+        for (Node node : allNodes.getNodes()) {
+            lValues[index++] = allNodes.getLValueByNodeId(node.getId()).toString();
         }
 
+        //每遍历一次 都往steos里添加一次，用于最后的输出
         steps.put(nodeIds, lValues);
     }
 
     private void findInitialLValues(Node startingNode) {
-        for (Node node : unvisitedNodes.getNodes()) {
+        for (Node node : allNodes.getNodes()) {
             Edge edge = findEdge(startingNode, node);
 
             if (node.equals(startingNode)) {
-                unvisitedNodes.setLValueByNodeId(node.getId(), 0);
-                comparisons++;
+                allNodes.setLValueByNodeId(node.getId(), 0);
             } else if (edge != null) {
-                unvisitedNodes.setLValueByNodeId(node.getId(), edge.getWeight());
-                comparisons++;
+                allNodes.setLValueByNodeId(node.getId(), edge.getWeight());
             } else {
-                unvisitedNodes.setLValueByNodeId(node.getId(), -1);
+                allNodes.setLValueByNodeId(node.getId(), -1);
             }
         }
 
@@ -111,17 +107,15 @@ public class Dijkstra extends Graph {
     }
 
     private void findSubsequentLValues(Node nextNode) {
-        for (Node node : unvisitedNodes.getNodes()) {
+        for (Node node : allNodes.getNodes()) {
             Edge edge = findEdge(nextNode, node);
 
             if (edge != null) {
-                comparisons++;
-                int oldLValue = unvisitedNodes.getLValueByNodeId(node.getId());
-                int newLValue = unvisitedNodes.getLValueByNodeId(nextNode.getId()) + edge.getWeight();
+                int oldLValue = allNodes.getLValueByNodeId(node.getId());
+                int newLValue = allNodes.getLValueByNodeId(nextNode.getId()) + edge.getWeight();
 
                 if (oldLValue > newLValue || oldLValue == -1) {
-                    comparisons += 2;
-                    unvisitedNodes.setLValueByNodeId(node.getId(), newLValue);
+                    allNodes.setLValueByNodeId(node.getId(), newLValue);
                 }
             }
         }
@@ -130,7 +124,7 @@ public class Dijkstra extends Graph {
     }
 
     private void flagNodeAsVisited(Node node) {
-        int lValue = unvisitedNodes.getLValueByNodeId(node.getId());
+        int lValue = allNodes.getLValueByNodeId(node.getId());
         visitedNodes.setLValueByNodeId(node.getId(), lValue);
 
         visitedNodes.addNode(node);
@@ -142,16 +136,14 @@ public class Dijkstra extends Graph {
         Node node = null;
         int lValue;
 
-        for (Node currentNode : unvisitedNodes.getNodes()) {
+        for (Node currentNode : allNodes.getNodes()) {
             if (visitedNodes.contains(currentNode)) {
-                comparisons++;
                 continue;
             }
 
-            lValue = unvisitedNodes.getLValueByNodeId(currentNode.getId());
+            lValue = allNodes.getLValueByNodeId(currentNode.getId());
 
             if (lValue > 0 && lValue < smallestLValue) {
-                comparisons += 2;
                 smallestLValue = lValue;
                 node = currentNode;
             }
@@ -160,19 +152,18 @@ public class Dijkstra extends Graph {
         return node;
     }
 
-    public int getComparisons() {
-        return comparisons;
-    }
-
     public static void main(String[] args) {
+        //定义node
         Node nodeA = new Node("A");
         Node nodeB = new Node("B");
         Node nodeC = new Node("C");
         Node nodeD = new Node("D");
         Node nodeE = new Node("E");
 
-        LinkedList<Node> testNodes = new LinkedList<>(Arrays.asList(nodeC, nodeB, nodeA, nodeE, nodeD));
+        LinkedList<Node> testNodes = new LinkedList<>(Arrays.asList(
+                nodeC, nodeB, nodeA, nodeE, nodeD));
 
+        //定义edge
         LinkedList<Edge> testEdges = new LinkedList<>(Arrays.asList(
                 new Edge(nodeA, nodeE, 2),
                 new Edge(nodeE, nodeC, 3),
@@ -181,10 +172,12 @@ public class Dijkstra extends Graph {
                 new Edge(nodeB, nodeC, 4)
         ));
 
+        //创建Dijkstra实例，传入组装好的node和edge
         Dijkstra dijkstraAlgo = new Dijkstra(testNodes, testEdges);
 
         Map<String[], String[]> steps = dijkstraAlgo.run(nodeA);
 
+        //定义输出文本（用于terminal显示）
         StringBuilder sb = new StringBuilder();
         sb.append("Dijkstra's Algorithm\n\n");
 
