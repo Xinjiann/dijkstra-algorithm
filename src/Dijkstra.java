@@ -185,8 +185,12 @@ public class Dijkstra extends Graph {
                 for (String s : arr) {
                     nodeList.add(new Node(s));
                 }
-                System.out.println("all node: " + nodeList);
-                System.out.println("please define all the nodes, you need to input three element, the name of the two nodes you need to connect, and the weight of the edge, separate each name with a space(e.g. A E 3)");
+                System.out.print("all node: ");
+                for (Node node : nodeList) {
+                    System.out.print(node.getName() + " ");
+                }
+                System.out.println();
+                System.out.println("please define all the nodes.\nyou need to input three element, the name of the two nodes you need to connect, and the weight of the edge, separate each name with a space(e.g. A E 3)");
             } else {
                 if (arr.length < 3) {
                     System.out.println("wrong input format");
@@ -210,7 +214,7 @@ public class Dijkstra extends Graph {
                     continue;
                 }
 
-                System.out.println("add edge success, please continue. when you finished, type 0 to tun the algorithm");
+                System.out.println("success, please continue. (when you finished, type 0 to tun the algorithm)");
             }
             count ++;
         }
