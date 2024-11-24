@@ -1,6 +1,7 @@
 
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 public class Dijkstra extends Graph {
     private final NodeMap allNodes;
@@ -71,23 +72,23 @@ public class Dijkstra extends Graph {
     }
 
     private void updateSteps() {
-        String[] nodeIds = new String[visitedNodes.size()];
+        String[] nodeNames = new String[visitedNodes.size()];
         String[] lValues = new String[numOfNodes];
 
         //这一步是组装输出的左半部分 即遍历过的node
         int index = 0;
         for (Node node : visitedNodes.getNodes()) {
-            nodeIds[index++] = String.valueOf(node.getId());
+            nodeNames[index++] = String.valueOf(node.getName());
         }
 
-        //这一步是组装输出的左半部分 即当前步骤中，每个节点的值，遍历过的=weight，没遍历过的=-1
+        //这一步是组装输出的右半部分 即当前步骤中，每个节点的值，遍历过的=weight，没遍历过的=-1
         index = 0;
         for (Node node : allNodes.getNodes()) {
             lValues[index++] = allNodes.getLValueByNodeId(node.getId()).toString();
         }
 
         //每遍历一次 都往steos里添加一次，用于最后的输出
-        steps.put(nodeIds, lValues);
+        steps.put(nodeNames, lValues);
     }
 
     private void findInitialLValues(Node startingNode) {
@@ -153,6 +154,88 @@ public class Dijkstra extends Graph {
     }
 
     public static void main(String[] args) {
+        int count = 0;
+        List<Node> nodeList = new ArrayList<>();
+        List<Edge> edgeList = new ArrayList<>();
+        Scanner scan = new Scanner(System.in);
+        System.out.println("please define all the nodes, separate each name with a space(e.g. A B C D E)：");
+        while (scan.hasNext()) {
+            String line = scan.nextLine();
+            if ("0".equals(line)) {
+                //创建Dijkstra实例，传入组装好的node和edge
+                Dijkstra dijkstraAlgo = new Dijkstra(nodeList, edgeList);
+                Map<String[], String[]> steps = dijkstraAlgo.run(nodeList.get(0));
+                //定义输出文本（用于terminal显示）
+                StringBuilder sb = new StringBuilder();
+                sb.append("Dijkstra's Algorithm\n\n");
+
+                for (Map.Entry<String[], String[]> entry : steps.entrySet()) {
+                    sb.append(Arrays.toString(entry.getKey()))
+                            .append(" : ")
+                            .append(Arrays.toString(entry.getValue()))
+                            .append("\n");
+                }
+                String output = sb.toString();
+                Logger logger = Logger.getLogger(Dijkstra.class.getName());
+                logger.info(output);
+                break;
+            }
+            String[] arr = line.split(" ");
+            if (count == 0) {
+                for (String s : arr) {
+                    nodeList.add(new Node(s));
+                }
+                System.out.println("all node: " + nodeList);
+                System.out.println("please define all the nodes, you need to input three element, the name of the two nodes you need to connect, and the weight of the edge, separate each name with a space(e.g. A E 3)");
+            } else {
+                if (arr.length < 3) {
+                    System.out.println("wrong input format");
+                    continue;
+                }
+                String nameA = arr[0];
+                if (!nodeList.stream().anyMatch(i -> i.getName().equals(nameA))) {
+                    System.out.println("there is no node named " + nameA);
+                    continue;
+                }
+                String nameB = arr[1];
+                if (!nodeList.stream().anyMatch(i -> i.getName().equals(nameB))) {
+                    System.out.println("there is no node named " + nameB);
+                    continue;
+                }
+                String valueStr = arr[2];
+                try {
+                    edgeList.add(new Edge(getNdeByName(nodeList, nameA), getNdeByName(nodeList, nameB), Integer.parseInt(valueStr)));
+                } catch (NumberFormatException e) {
+                    System.out.println("Worong number format " + valueStr);
+                    continue;
+                }
+
+                System.out.println("add edge success, please continue. when you finished, type 0 to tun the algorithm");
+            }
+            count ++;
+        }
+        scan.close();
+    }
+
+    private static Node getNdeByName(List<Node> nodeList, String name) {
+        for (Node node : nodeList) {
+            if (node.getName().equals(name)){
+                return node;
+            }
+        }
+        return null;
+    }
+
+
+
+
+    public static void main2(String[] args) {
+
+
+
+
+
+
         //定义node
         Node nodeA = new Node("A");
         Node nodeB = new Node("B");
