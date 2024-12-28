@@ -1,0 +1,26 @@
+.button
+{
+    -fx-background-color: #F8F8FF;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-border-color: #F8F8FF;
+    -fx-border-width: 0px;
+    -fx-border-radius: 0px;
+    -fx-padding: 5px 10px 5px 10px;
+}
+
+.button:hover
+{
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+}
+
+.root {
+    -fx-background-color: #F8F8FF;
+}
+
+.table-view
+{
+    -fx-font-size: 15;
+}
