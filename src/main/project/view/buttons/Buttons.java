@@ -43,7 +43,7 @@ public class Buttons
 	private final Controller controller;
 
 	public Buttons(Controller controller, Graph graph, Table table, ComparisonChart comparisonChart, Pane mainPane,
-	               HBox animationBox)
+				   HBox animationBox)
 	{
 		this.table = table;
 		setupButtonsPane();
@@ -129,7 +129,7 @@ public class Buttons
 		swapButton.setGraphic(swapIconView);
 
 		// Add buttons to buttonsPane
-		buttonsPane.getChildren().addAll(runButton, resetButton, saveButton, loadButton);
+		buttonsPane.getChildren().addAll(runButton, resetButton, saveButton, loadButton, swapButton);
 
 		// Centre buttons
 		buttonsPane.setAlignment(Pos.TOP_CENTER);
